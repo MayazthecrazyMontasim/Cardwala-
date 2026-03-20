@@ -1275,12 +1275,31 @@ Object.keys(IMAGES).forEach(k => {
 function drawImageBg(c, char) {
   const img = imgCache[char];
   if (!img || !img.complete || img.naturalWidth === 0) return;
-  // Cover-fit: fill canvas keeping aspect ratio, centered
   const iw = img.naturalWidth, ih = img.naturalHeight;
-  const scale = Math.max(W/iw, H/ih);
-  const sw = iw*scale, sh = ih*scale;
-  const sx = (W-sw)/2, sy = (H-sh)/2;
-  c.drawImage(img, sx, sy, sw, sh);
+
+  if (char === 'cinderella') {
+    // Portrait image — scale to fill full height, center horizontally
+    // and tile/mirror the sides with a blurred bg fill
+    const scale = H / ih;
+    const sw = iw * scale, sh = H;
+    // Draw blurred stretched bg first
+    c.save();
+    c.filter = 'blur(18px)';
+    c.drawImage(img, 0, 0, W, H);
+    c.restore();
+    // Overlay to darken blur
+    c.fillStyle = 'rgba(10,20,80,0.45)';
+    c.fillRect(0,0,W,H);
+    // Draw crisp centered image on top
+    const sx = (W - sw) / 2;
+    c.drawImage(img, sx, 0, sw, sh);
+  } else {
+    // Cover-fit: fill canvas keeping aspect ratio, centered
+    const scale = Math.max(W/iw, H/ih);
+    const sw = iw*scale, sh = ih*scale;
+    const sx = (W-sw)/2, sy = (H-sh)/2;
+    c.drawImage(img, sx, sy, sw, sh);
+  }
   // Slight darkening overlay so text is readable
   c.fillStyle = 'rgba(0,0,0,0.18)';
   c.fillRect(0,0,W,H);
